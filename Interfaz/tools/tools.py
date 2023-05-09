@@ -100,24 +100,23 @@ def preprocess_ecg(ecg, sample_rate, leads, new_freq=None, new_len=None, scale=1
 def generateH5(input_file,out_file,new_freq=None,new_len=None,scale=1,powerline=None,use_all_leads=True,remove_baseline=False,root_dir=None,fmt='wfdb'):
     n = len(input_file)  # Get length
     try:
-      h5f = h5py.File(out_file, 'r+')
+      h5f = h5py.File(f"{configVars.pathCasos}{out_file}", 'r+')
       h5f.clear()
     except:
-      h5f = h5py.File(out_file, 'w')
+      h5f = h5py.File(f"{configVars.pathCasos}{out_file}", 'w')
 
     ecg = input_file 
     sample_rate, leads = input_file.shape
-    ecg_preprocessed, new_rate, new_leads = preprocess_ecg(ecg, sample_rate, leads,
-                                                                      new_freq=new_freq,
-                                                                      new_len=new_len,
-                                                                      scale=scale,
-                                                                      powerline=powerline,
-                                                                      use_all_leads=use_all_leads,
-                                                                      remove_baseline=remove_baseline)
-    ecg_preprocessed = ecg.T
+    #ecg_preprocessed, new_rate, new_leads = preprocess_ecg(ecg, sample_rate, leads,
+    #                                                                  new_freq=new_freq,
+    #                                                                  new_len=new_len,
+    #                                                                  scale=scale,
+    #                                                                  powerline=powerline,
+    #                                                                  use_all_leads=use_all_leads,
+    #                                                                  remove_baseline=remove_baseline)    
+    ecg_preprocessed = ecg
     n_leads, n_samples = ecg_preprocessed.shape
     x = h5f.create_dataset('tracings', (1, n_samples, n_leads), dtype='f8')
-    print(ecg_preprocessed.T)
     x[0, :, :] = ecg_preprocessed.T
 
     h5f.close()
