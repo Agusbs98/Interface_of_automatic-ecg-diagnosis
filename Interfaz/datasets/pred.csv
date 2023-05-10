@@ -1,2 +1,2 @@
-id,age,sex,label_0,label_1,label_2,label_3,label_4,label_5,label_6,label_7,label_8,r_count,length
-pred,20,1,0,0,0,0,0,0,0,0,0,19,12
+id
+pred

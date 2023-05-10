@@ -17,87 +17,41 @@ def remove_baseline_filter(sample_rate):
 reduced_leads = ['DI', 'DII', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6']
 all_leads = ['DI', 'DII', 'DIII', 'AVR', 'AVL', 'AVF', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6']
 
-def preprocess_ecg(ecg, sample_rate, leads, new_freq=None, new_len=None, scale=1,
-                   use_all_leads=True, remove_baseline=False, powerline=None):
-    print("entrada")
-    print(ecg.shape)
+def preprocess_ecg(ecg, sample_rate, leads, scale=1,
+                   use_all_leads=True, remove_baseline=False):
     # Remove baseline
     if remove_baseline:
         sos = remove_baseline_filter(sample_rate)
         ecg_nobaseline = sgn.sosfiltfilt(sos, ecg, padtype='constant', axis=-1)
     else:
         ecg_nobaseline = ecg
-    print("Remove baseline")
-    print(ecg_nobaseline.shape)
-
-    # Remove powerline
-    if powerline is None:
-        ecg_nopowerline = ecg_nobaseline
-    else:
-        # Design notch filter
-        q = 30.0  # Quality factor
-        b, a = sgn.iirnotch(powerline, q, fs=sample_rate)
-        ecg_nopowerline = sgn.filtfilt(b, a, ecg_nobaseline)
-    print("remove powerline")
-    print(ecg_nopowerline.shape)
-
-    # Resample
-    #if new_freq is not None:
-    #    print("none")
-    #    ecg_resampled = sgn.resample_poly(ecg_nopowerline, up=new_freq, down=sample_rate, axis=-1)
-    #else:
-    #    print("else")
-    #    ecg_resampled = ecg_nopowerline
-    #    new_freq = sample_rate
-    ecg_resampled = ecg_nopowerline
-    n_leads, length = ecg_resampled.shape
-    print("resample")
-    print(ecg_resampled.shape)
-    print(n_leads)
 
     # Rescale
-    ecg_rescaled = scale * ecg_resampled
-    print("rescale")
-    print(ecg_rescaled.shape)
-
+    ecg_rescaled = scale * ecg_nobaseline
+    
+     # Resample
+    if sample_rate != 500:
+        ecg_resampled = sgn.resample_poly(ecg_rescaled, up=500, down=sample_rate, axis=-1)
+    else:
+        ecg_resampled = ecg_rescaled
+    length = len(ecg_resampled[0])
+    
     # Add leads if needed
     target_leads = all_leads if use_all_leads else reduced_leads
     n_leads_target = len(target_leads)
     l2p = dict(zip(target_leads, range(n_leads_target)))
     ecg_targetleads = np.zeros([n_leads_target, length])
-    print(l2p)
-    print(ecg_rescaled.shape)
-    print(ecg_targetleads.shape)
     ecg_targetleads = ecg_rescaled
-    #for i, l in enumerate(leads):
-    #    if l in target_leads:
-    #        #ecg_targetleads[l2p[l], :] = ecg_rescaled[i, :]
-    #        ecg_targetleads[l2p[l], :] = ecg_rescaled[:]
-    if n_leads_target >= n_leads and use_all_leads:
+    if n_leads_target >= leads and use_all_leads:
         ecg_targetleads[l2p['DIII'], :] = ecg_targetleads[l2p['DII'], :] - ecg_targetleads[l2p['DI'], :]
         ecg_targetleads[l2p['AVR'], :] = -(ecg_targetleads[l2p['DI'], :] + ecg_targetleads[l2p['DII'], :]) / 2
         ecg_targetleads[l2p['AVL'], :] = (ecg_targetleads[l2p['DI'], :] - ecg_targetleads[l2p['DIII'], :]) / 2
         ecg_targetleads[l2p['AVF'], :] = (ecg_targetleads[l2p['DII'], :] + ecg_targetleads[l2p['DIII'], :]) / 2
-    
-    ###################################
-    #ecg_targetleads = ecg_rescaled
-    ###################################
 
-    # Reshape
-    if new_len is None or new_len == length:
-        ecg_reshaped = ecg_targetleads
-    elif new_len > length:
-        ecg_reshaped = np.zeros([n_leads_target, new_len])
-        pad = (new_len - length) // 2
-        ecg_reshaped[..., pad:length+pad] = ecg_targetleads
-    else:
-        extra = (length - new_len) // 2
-        ecg_reshaped = ecg_targetleads[:, extra:new_len + extra]
-
-    return ecg_reshaped, new_freq, target_leads
+    return ecg_targetleads
 
 
-def generateH5(input_file,out_file,new_freq=None,new_len=None,scale=1,powerline=None,use_all_leads=True,remove_baseline=False,root_dir=None,fmt='wfdb'):
+def generateH5(input_file,out_file,new_freq=None,new_len=None,scale=1,sample_rate=None):
     n = len(input_file)  # Get length
     try:
       h5f = h5py.File(f"{configVars.pathCasos}{out_file}", 'r+')
@@ -105,28 +59,37 @@ def generateH5(input_file,out_file,new_freq=None,new_len=None,scale=1,powerline=
     except:
       h5f = h5py.File(f"{configVars.pathCasos}{out_file}", 'w')
 
-    ecg = input_file 
-    sample_rate, leads = input_file.shape
-    #ecg_preprocessed, new_rate, new_leads = preprocess_ecg(ecg, sample_rate, leads,
-    #                                                                  new_freq=new_freq,
-    #                                                                  new_len=new_len,
-    #                                                                  scale=scale,
-    #                                                                  powerline=powerline,
-    #                                                                  use_all_leads=use_all_leads,
-    #                                                                  remove_baseline=remove_baseline)    
-    ecg_preprocessed = ecg
-    n_leads, n_samples = ecg_preprocessed.shape
-    x = h5f.create_dataset('tracings', (1, n_samples, n_leads), dtype='f8')
-    x[0, :, :] = ecg_preprocessed.T
-
-    h5f.close()
+    # Resample
+    if new_freq is not None:
+        ecg_resampled = sgn.resample_poly(input_file, up=new_freq, down=sample_rate, axis=-1)
+    else:
+        ecg_resampled = input_file
+        new_freq = sample_rate
+    n_leads, length = ecg_resampled.shape
     
+    # Rescale
+    ecg_rescaled = scale * ecg_resampled
+    
+    # Reshape
+    if new_len is None or new_len == length:
+        ecg_reshaped = ecg_rescaled
+    elif new_len > length:
+        ecg_reshaped = np.zeros([n_leads, new_len])
+        pad = (new_len - length) // 2
+        ecg_reshaped[..., pad:length+pad] = ecg_rescaled
+    else:
+        extra = (length - new_len) // 2
+        ecg_reshaped = ecg_rescaled[:, extra:new_len + extra]
+    
+    n_leads, n_samples = ecg_reshaped.shape
+    x = h5f.create_dataset('tracings', (1, n_samples, n_leads), dtype='f8')
+    x[0, :, :] = ecg_reshaped.T
+    h5f.close()
     
 def LightX3ECG(
     train_loaders, 
     config,
     save_ckp_dir, 
-    training_verbose = True, 
 ):
     model = torch.load(f"{save_ckp_dir}/best.ptl", map_location='cpu')
     #model = torch.load(f"{save_ckp_dir}/best.ptl", map_location = "cuda")
@@ -135,9 +98,8 @@ def LightX3ECG(
         model.eval()
         running_preds = []
     
-        for ecgs, labels in tqdm(train_loaders["pred"], disable = not training_verbose):  
-            ecgs, labels = ecgs.cpu(), labels.cpu()
-            #ecgs, labels = ecgs.cuda(), labels.cuda()
+        for ecgs in train_loaders["pred"]:  
+            ecgs = ecgs.cpu()
             logits = model(ecgs)
             preds = list(torch.max(logits, 1)[1].detach().cpu().numpy()) if not config["is_multilabel"] else list(torch.sigmoid(logits).detach().cpu().numpy())
             running_preds.extend(preds)
@@ -153,35 +115,3 @@ def LightX3ECG(
         #running_preds=np.reshape(running_preds, (len(running_preds),-1))
         preds = enfermedades[running_preds[0]]
     return preds
-
-
-def getPredictedProbability(labels,preds):
-    #labels debería ser las labels reales, que no hacen falta aquí en un principio
-    # aux=np.array([])
-    probs = []
-    predLabels = []
-    print(labels)
-    for label, pred in zip(labels, preds):
-        # aux = np.append(aux,pred[label])
-        predLabel=np.array(pred).argmax()
-        predLabels.append(predLabel)
-        probs.append(pred[predLabel])
-    print(predLabels)
-    print(probs)
-    return predLabels,probs
-
-
-def get_r_count(ecg):
-    counts = []
-    for i in range(ecg.shape[0]):
-        try:
-            count = len(nk.ecg_peaks(ecg[i, :], sampling_rate=500)[1]['ECG_R_Peaks'].tolist())
-        except:
-            count = 0
-        counts.append(count)
-    print("####################")
-    print(ecg)
-    print(counts)
-    print("####################")
-
-    return max(set(counts), key = counts.count)

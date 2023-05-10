@@ -5,7 +5,6 @@ import warnings; warnings.filterwarnings("ignore")
 import pandas, numpy as np
 import pandas as pd
 import gradio as gr
-import tqdm
 #import argparse
 #import random
 #import neurokit2 as nk
@@ -20,11 +19,10 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import h5py
-import scipy.signal  as sgn
+import scipy.signal as sgn
 from sierraecg import read_file
 
 
-#!pip install tqdm 
 #!pip install pandas 
 #!pip install torch 
 #!pip install gradio

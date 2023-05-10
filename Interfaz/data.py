@@ -18,13 +18,6 @@ class ECGDataset(torch.utils.data.Dataset):
     ):
         return len(self.df)
 
-    #def drop_lead(self, 
-    #    ecg, 
-    #):
-    #    if random.random() >= 0.5:
-    #        ecg[np.random.randint(len(self.config["ecg_leads"])), :] = 0.0
-    #    return ecg
-
     def __getitem__(self, 
         index, 
     ):
@@ -49,9 +42,4 @@ class ECGDataset(torch.utils.data.Dataset):
             ecg = self.drop_lead(ecg)
         ecg = torch.tensor(ecg).float()
 
-        if not self.config["is_multilabel"]:
-            label = row["label_0"]
-        else:
-            label = row[[col for col in list(row.index) if "label_" in col]].values.astype("float64")
-
-        return ecg, label
+        return ecg

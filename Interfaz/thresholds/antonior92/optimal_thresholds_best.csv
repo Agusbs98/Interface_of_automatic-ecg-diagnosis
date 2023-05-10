@@ -1,0 +1,7 @@
+Pred,Threshold
+I-AVB,0.124
+RBBB,0.07
+LBBB,0.05
+SB,0.278
+AF,0.390
+ST,0.174
