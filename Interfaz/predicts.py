@@ -7,11 +7,9 @@ def procesar_archivo(format,number,unit,frec,file):
     try:
         prepare_data(format,number,unit,frec,file)
         antonior92 = predict_antonior92()
-        #antonior92 = []
         CPSC = predict_CPSC_2018()
         Chapman = predict_Chapman()
         result = pd.DataFrame(data = [['Antonior92',antonior92],['CPSC-2018',CPSC],['Chapman',Chapman]],columns=['Red','Predicción'])
-        ##return []
         return result
     except:
         return pd.DataFrame(data = ["Se ha producido un error inesperado.","Compruebe que los datos de entrada sean correctos"],columns = ["ERROR."])
@@ -84,12 +82,9 @@ def predict_antonior92():
     optimal_thresholds = pd.read_csv(f"{configVars.pathThresholds}antonior92/optimal_thresholds_best.csv")
     result = optimal_thresholds[optimal_thresholds["Threshold"]<=pred[0]]
     result = result['Pred'].values.tolist()
-    enfermedades = np.array(['Normal','1dAVb', 'RBBB', 'LBBB', 'SB', 'AF', 'ST'])
-    selected = [True,False,True,False,False,True,False]
-    #result = enfermedades[selected]
     f.close()
     
-    return result if len(result) == 0 else ['Normal']
+    return result if len(result) != 0 else ['Normal']
 
 def prepare_data(format,number,unit,frec,file):
     units = {
