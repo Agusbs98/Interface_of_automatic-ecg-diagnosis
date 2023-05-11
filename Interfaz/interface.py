@@ -25,8 +25,8 @@ with gr.Blocks() as demo:
     with gr.Column():
         frec = gr.inputs.Number(label= "Frecuencia (Hz)",default=500)
         file = gr.inputs.File(label="Selecciona un archivo.")
-        button = gr.Button(value='Predict')
-        out = gr.DataFrame(label="Predicción automática.",type="pandas",headers = ['Red','Predicción'])
+        button = gr.Button(value='Analizar')
+        out = gr.DataFrame(label="Diagnostico automático.",type="pandas",headers = ['Red','Predicción'])
         #out = gr.outputs.Dataframe(label="Predicción automática.",type="pandas",headers = ['Red','Predicción'])
     button.click(fn=procesar_archivo,inputs=[format,number,unit,frec,file] ,outputs=out)
     

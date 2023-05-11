@@ -42,7 +42,7 @@ def predict_CPSC_2018():
                 config,
                 save_ckp_dir, 
                 )
-    return pred
+    return pred if len(pred) != 0 else ['El archivo introducido no satisface ninguno de los criterios de clasificación']
 
 def predict_Chapman():
     config = {
