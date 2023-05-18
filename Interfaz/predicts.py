@@ -75,7 +75,6 @@ def predict_Chapman():
     return pred
 
 def predict_antonior92():
-    threshold = np.array([0.124, 0.07, 0.05, 0.278, 0.390, 0.174])
     f = h5py.File(f"{configVars.pathCasos}pred.hdf5", 'r')
     model = load_model(f"{configVars.pathModel}/antonior92/model.hdf5", compile=False)
     model.compile(loss='binary_crossentropy', optimizer=Adam())
