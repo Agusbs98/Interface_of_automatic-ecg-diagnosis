@@ -10,9 +10,10 @@ def procesar_archivo(format,number,unit,frec,file):
         CPSC = predict_CPSC_2018()
         Chapman = predict_Chapman()
         result = pd.DataFrame(data = [['Antonior92',antonior92],['CPSC-2018',CPSC],['Chapman',Chapman]],columns=['Red','Predicción'])
-        return result
+        tools.ecgPlot("./datasets/pred.npy",500)
+        return result, "ecg.png"
     except:
-        return pd.DataFrame(data = ["Se ha producido un error inesperado.","Compruebe que los datos de entrada sean correctos"],columns = ["ERROR."])
+        return pd.DataFrame(data = ["Se ha producido un error inesperado.","Compruebe que los datos de entrada sean correctos"],columns = ["ERROR."]), "error.jpg"
 
 
 def predict_CPSC_2018():

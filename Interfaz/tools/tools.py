@@ -115,3 +115,10 @@ def LightX3ECG(
         #running_preds=np.reshape(running_preds, (len(running_preds),-1))
         preds = enfermedades[running_preds[0]]
     return preds
+
+def ecgPlot(source,sample):
+    data = np.load(source)
+    #print(data)
+    xml_leads = ['DI', 'DII', 'DIII', 'AVR', 'AVL', 'AVF', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6']
+    ecg_plot.plot(data, sample_rate= sample,lead_index=xml_leads, title="Muestra")
+    ecg_plot.save_as_png("ecg")

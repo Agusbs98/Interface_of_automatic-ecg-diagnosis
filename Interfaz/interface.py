@@ -13,6 +13,13 @@ with gr.Blocks() as interface:
         file = gr.inputs.File(label="Selecciona un archivo.")
         button = gr.Button(value='Analizar')
         out = gr.DataFrame(label="Diagnostico automático.",type="pandas",headers = ['Red','Predicción'])
-    button.click(fn=procesar_archivo,inputs=[format,number,unit,frec,file] ,outputs=out)
+        img = gr.outputs.Image(label="Imagen",type='filepath')
+    button.click(fn=procesar_archivo,inputs=[format,number,unit,frec,file] ,outputs=[out,img])
+    
+    def initProcess():
+        result = procesar_archivo(format,number,unit,frec,file)
+        out.update(result)
+        interface.output[-1].image = gr.Image("./ecg.png")
+        print("entra")
     
 interface.launch()
