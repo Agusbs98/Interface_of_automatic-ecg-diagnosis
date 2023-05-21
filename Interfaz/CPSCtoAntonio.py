@@ -17,11 +17,6 @@ def CPSCtoAntonio(ecg, sample_rate,new_len=4096, scale=1,
     # Rescale
     ecg_rescaled = scale * ecg_nobaseline
 
-    #Arreglar longitud
-    num = 5119 - ecg_rescaled.shape[1] #Por algún motivo necesita que sean al menos 5119 filas
-    if num > 0 : 
-        ecg_rescaled = np.concatenate((ecg_rescaled, np.zeros((ecg_rescaled.shape[0], num))), axis=1)
-
      # Resample
     if sample_rate != 400:
         ecg_resampled = sgn.resample_poly(ecg_rescaled, up=400, down=sample_rate, axis=-1)
@@ -29,12 +24,12 @@ def CPSCtoAntonio(ecg, sample_rate,new_len=4096, scale=1,
         ecg_resampled = ecg_rescaled
 
     leads, length = ecg_resampled.shape
-    
+
     # Add leads if needed
     target_leads = all_leads if use_all_leads else reduced_leads
     n_leads_target = len(target_leads)
     l2p = dict(zip(target_leads, range(n_leads_target)))
-    ecg_targetleads = ecg_rescaled
+    ecg_targetleads = ecg_resampled
 
     if n_leads_target >= leads and use_all_leads:
         ecg_targetleads[l2p['DIII'], :] = ecg_targetleads[l2p['DII'], :] - ecg_targetleads[l2p['DI'], :]
@@ -48,6 +43,8 @@ def CPSCtoAntonio(ecg, sample_rate,new_len=4096, scale=1,
     elif new_len > length:
         ecg_reshaped = np.zeros([n_leads_target, new_len])
         pad = (new_len - length) // 2
+        # print(f"Nleads: {n_leads_target}, pad: {pad}, new_len: {new_len}, len: {length}")
+        # print(f"Izquierda:{ecg_reshaped[..., pad:length+pad].shape} Derecha:{ecg_targetleads.shape}")
         ecg_reshaped[..., pad:length+pad] = ecg_targetleads
     else:
         extra = (length - new_len) // 2
@@ -57,9 +54,9 @@ def CPSCtoAntonio(ecg, sample_rate,new_len=4096, scale=1,
 
 def Antonizar(fsource,fdest):
     ecg = np.load(fsource)
-    # print(ecg.shape)
+    print(ecg.shape)
     ecgAntonizado = CPSCtoAntonio(ecg, 500, scale=2, use_all_leads=True, remove_baseline=False)
-    # print(ecgAntonizado.shape)
+    print(ecgAntonizado.shape)
     np.save(fdest[:-4], ecgAntonizado)
 
 def buclePorCarpeta(source,dest,func,source_file_Extension='npy',dest_file_Extension='npy'):
@@ -67,13 +64,13 @@ def buclePorCarpeta(source,dest,func,source_file_Extension='npy',dest_file_Exten
         fsource = os.path.join(source, filename)
         fdest= os.path.join(dest, filename)
         if os.path.isfile(fsource) and filename.endswith(f"{source_file_Extension}"):#and not os.path.isfile(f"{fdest[:-3]}{dest_file_Extension}")
-            try:
-                func(fsource,fdest)
-            except Exception as e:
-                print(f"Este archivo da error: {fsource}\n")
-                print(e)
+            # try:
+            func(fsource,fdest)
+            # except Exception as e:
+            #     print(f"Este archivo da error: {fsource}\n")
+            #     print(e)
 
-buclePorCarpeta(os.path.join("..","..","LightX3ECGPrivate","datasets","Casos","CPSC-2018","CasosNumpy"),os.path.join("..","..","CPSCAntonizado"),Antonizar)
+buclePorCarpeta(os.path.join("..","..","LightX3ECGPrivate","datasets","Casos","CPSC-2018","CasosNumpy"),os.path.join("..","..","Prueba"),Antonizar)
 # ecg = np.load('../../Examenes_Antonio_NPY/100.npy')
 # print(ecg.shape)
 # ecg = ecg.T
