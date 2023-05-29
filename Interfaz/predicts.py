@@ -93,7 +93,7 @@ def prepare_data(format,number,unit,frec,file):
         'microV':1000,
         'nanoV':1000000
     }
-    if(format == 'XML'):
+    if(format == 'XMLsierra'):
         f = read_file(file.name)
         df = pd.DataFrame()
         for lead in f.leads:

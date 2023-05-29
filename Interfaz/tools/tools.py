@@ -1,6 +1,5 @@
 from libs import *
 import configVars
-
 def remove_baseline_filter(sample_rate):
     fc = 0.8  # [Hz], cutoff frequency
     fst = 0.2  # [Hz], rejection band
@@ -120,5 +119,5 @@ def ecgPlot(source,sample):
     data = np.load(source)
     #print(data)
     xml_leads = ['DI', 'DII', 'DIII', 'AVR', 'AVL', 'AVF', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6']
-    ecg_plot.plot(data, sample_rate= sample,lead_index=xml_leads, title="Muestra")
+    ecg_plot.plot_12(data, sample_rate= sample,lead_index=xml_leads, title="Muestra")
     ecg_plot.save_as_png("ecg")
