@@ -2,6 +2,7 @@
 import os, sys
 from libs import *
 
+### reused from LightX3ECG's project ###
 class ECGDataset(torch.utils.data.Dataset):
     def __init__(self, 
         df_path, data_path, 

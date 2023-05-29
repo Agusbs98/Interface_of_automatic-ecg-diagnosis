@@ -1,5 +1,6 @@
 from libs import *
 import configVars
+### reused from Antonior92's project ###
 def remove_baseline_filter(sample_rate):
     fc = 0.8  # [Hz], cutoff frequency
     fst = 0.2  # [Hz], rejection band
@@ -13,9 +14,9 @@ def remove_baseline_filter(sample_rate):
 
     return sos
 
+### reused from Antonior92's project ###
 reduced_leads = ['DI', 'DII', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6']
 all_leads = ['DI', 'DII', 'DIII', 'AVR', 'AVL', 'AVF', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6']
-
 def preprocess_ecg(ecg, sample_rate, leads, scale=1,
                    use_all_leads=True, remove_baseline=False):
     # Remove baseline
@@ -84,7 +85,8 @@ def generateH5(input_file,out_file,new_freq=None,new_len=None,scale=1,sample_rat
     x = h5f.create_dataset('tracings', (1, n_samples, n_leads), dtype='f8')
     x[0, :, :] = ecg_reshaped.T
     h5f.close()
-    
+
+### reused from LightX3ECG's project ###
 def LightX3ECG(
     train_loaders, 
     config,
